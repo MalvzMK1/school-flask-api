@@ -1,5 +1,6 @@
 from flask import Flask
 from datetime import datetime
+from abc import ABC
 
 
 """
@@ -54,7 +55,7 @@ MODELS -> Representation of the entities
 """
 
 
-class Entity:
+class Entity(ABC):
   def __init__(self):
     self._id = idGenerator.generate()
     self._created_at = datetime.now()
@@ -67,12 +68,36 @@ class Entity:
   def created_at(self) -> datetime:
     return self._created_at
 
+class Person(ABC):
+  def __init__(self, name: str, birthdate: datetime):
+    self._name = name
+    self._birthdate = birthdate
 
+  @property
+  def name(self) -> str:
+    return self._name
 
-class Teacher(Entity):
-  def __init__(self):
-    super().__init__()
+  @name.setter
+  def name(self, name: str) -> None:
+    self._name = name
+  
+  @property
+  def birthdate(self) -> datetime:
+    return self._birthdate
 
+  @birthdate.setter
+  def birthdate(self, birthdate: datetime) -> None:
+    self._birthdate = birthdate
+
+  @property
+  def age(self) -> int:
+    today = datetime.now()
+    return (today - self.__birthdate).days // 365
+
+class Teacher(Entity, Person):
+  def __init__(self, name: str, birthdate: datetime):
+    Entity.__init__(self)
+    Person.__init__(self, name, birthdate)
 
 class CourseClass(Entity):
   def __init__(self, teacher: Teacher):
@@ -105,35 +130,11 @@ class CourseClass(Entity):
     self.__students.remove(student_id)
 
 
-class Student(Entity):
-  def __init__(self, name: str, birth_date: datetime):
-    super().__init__()
-
-    self.__name = name
-    self.__birth_date = birth_date
+class Student(Entity, Person):
+  def __init__(self, name: str, birthdate: datetime):
+    Entity.__init__(self)
+    Person.__init__(self, name, birthdate)
     self.__enrolled_course_classes: HashMap[int, CourseClass] = {}
-
-  @property
-  def name(self) -> str:
-    return self.__name
-
-  @name.setter
-  def name(self, name: str) -> None:
-    self.__name = name
-
-  @property
-  def birth_date(self) -> datetime:
-    return self.__birth_date
-
-  @birth_date.setter
-  def birth_date(self, birth_date: datetime) -> None:
-    self.__birth_date = birth_date
-
-  @property
-  def age(self) -> int:
-    now = datetime.now()
-
-    return (now - self.__birth_date).days // 365
 
   @property
   def enrolled_course_classes(self) -> HashMap[int, CourseClass]:
