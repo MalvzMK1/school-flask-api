@@ -6,6 +6,33 @@ from datetime import datetime
 UTILS -> Some useful code
 """
 
+class HashMap[K, V]:
+  def __init__(self):
+    self.__size = 0
+    self.__elements: dict[K, V] = {}
+
+  @property
+  def size(self) -> int:
+    return self.__size
+
+  def add(self, key: K, value: V) -> None:
+    if key not in self.__elements:
+      self.__elements[key] = value
+
+      self.__size += 1
+
+  def remove(self, key: K) -> None:
+    if key in self.__elements:
+      self.__elements.pop(key)
+      self.__size -= 1
+
+  def get(self, key: K) -> V:
+    return self.__elements[key] if key in self.__elements else None
+
+  def __repr__(self):
+    return self.__elements.__str__()
+
+
 
 class IdGenerator:
   def __init__(self):
@@ -42,9 +69,41 @@ class Entity:
 
 
 
-class CourseClass(Entity):
+class Teacher(Entity):
   def __init__(self):
     super().__init__()
+
+
+class CourseClass(Entity):
+  def __init__(self, teacher: Teacher):
+    super().__init__()
+    self.__teacher = teacher
+    self.__students = HashMap[int, Student]()
+
+  @property
+  def teacher(self) -> Teacher:
+    return self.__teacher
+
+  @teacher.setter
+  def teacher(self, new_teacher: Teacher) -> None:
+    self.__teacher = new_teacher
+
+  @property
+  def students(self) -> HashMap:
+    return self.__students
+
+  @property
+  def student_ammount(self) -> int:
+    return self.__students.size
+
+  # TODO: type parameter
+  def add_student(self, student) -> None:
+    self.__students.add(student.id, student)
+
+  # TODO: type parameter
+  def remove_student_by_id(self, student_id: int) -> None:
+    self.__students.remove(student_id)
+
 
 class Student(Entity):
   def __init__(self, name: str, birth_date: datetime):
@@ -52,7 +111,7 @@ class Student(Entity):
 
     self.__name = name
     self.__birth_date = birth_date
-    self.__enrolled_course_classes: dict[int, CourseClass] = {}
+    self.__enrolled_course_classes: HashMap[int, CourseClass] = {}
 
   @property
   def name(self) -> str:
@@ -77,8 +136,14 @@ class Student(Entity):
     return (now - self.__birth_date).days // 365
 
   @property
-  def enrolled_course_classes(self) -> dict[int, CourseClass]:
+  def enrolled_course_classes(self) -> HashMap[int, CourseClass]:
     return self.__enrolled_course_classes
+
+  def add_course_class(self, course_class: CourseClass) -> None:
+    self.__enrolled_course_classes.add(course_class.id, course_class)
+
+  def remove_course_class(self, course_class_id: int) -> None:
+    self.__enrolled_course_classes.remove(course_class_id)
 
 """
 REPOSITORIES -> Classes to interact with the Database
