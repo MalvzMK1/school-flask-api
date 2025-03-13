@@ -41,6 +41,45 @@ class Entity:
     return self._created_at
 
 
+
+class CourseClass(Entity):
+  def __init__(self):
+    super().__init__()
+
+class Student(Entity):
+  def __init__(self, name: str, birth_date: datetime):
+    super().__init__()
+
+    self.__name = name
+    self.__birth_date = birth_date
+    self.__enrolled_course_classes: dict[int, CourseClass] = {}
+
+  @property
+  def name(self) -> str:
+    return self.__name
+
+  @name.setter
+  def name(self, name: str) -> None:
+    self.__name = name
+
+  @property
+  def birth_date(self) -> datetime:
+    return self.__birth_date
+
+  @birth_date.setter
+  def birth_date(self, birth_date: datetime) -> None:
+    self.__birth_date = birth_date
+
+  @property
+  def age(self) -> int:
+    now = datetime.now()
+
+    return (now - self.__birth_date).days // 365
+
+  @property
+  def enrolled_course_classes(self) -> dict[int, CourseClass]:
+    return self.__enrolled_course_classes
+
 """
 REPOSITORIES -> Classes to interact with the Database
 """
@@ -60,4 +99,4 @@ app = Flask(__name__)
 
 
 if __name__ == '__main__':
-  app.run()
+  pass
