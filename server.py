@@ -98,6 +98,23 @@ class Teacher(Entity, Person):
   def __init__(self, name: str, birthdate: datetime):
     Entity.__init__(self)
     Person.__init__(self, name, birthdate)
+    self.__course_classes = HashMap[int, CourseClass]()
+  
+  @property
+  # TODO: type return
+  def course_classes(self):
+    return self.__course_classes
+  
+  @property
+  def course_classes_ammount(self) -> int:
+    return self.__course_classes.size
+
+  def add_course_class(self, course_class) -> None:
+    self.__course_classes.add(course_class.id, course_class)
+
+  def remove_course_class_by_id(self, course_class_id: int) -> None:
+    self.__course_classes.remove(course_class_id)
+
 
 class CourseClass(Entity):
   def __init__(self, teacher: Teacher):
@@ -134,17 +151,22 @@ class Student(Entity, Person):
   def __init__(self, name: str, birthdate: datetime):
     Entity.__init__(self)
     Person.__init__(self, name, birthdate)
-    self.__enrolled_course_classes: HashMap[int, CourseClass] = {}
+    self.__course_classes: HashMap[int, CourseClass] = {}
 
   @property
-  def enrolled_course_classes(self) -> HashMap[int, CourseClass]:
-    return self.__enrolled_course_classes
+  def course_classes(self) -> HashMap[int, CourseClass]:
+    return self.__course_classes
+
+  @property
+  def course_classes_ammount(self) -> int:
+    return self.__course_classes.size
 
   def add_course_class(self, course_class: CourseClass) -> None:
-    self.__enrolled_course_classes.add(course_class.id, course_class)
+    self.__course_classes.add(course_class.id, course_class)
 
-  def remove_course_class(self, course_class_id: int) -> None:
-    self.__enrolled_course_classes.remove(course_class_id)
+  def remove_course_class_by_id(self, course_class_id: int) -> None:
+    self.__course_classes.remove(course_class_id)
+
 
 """
 REPOSITORIES -> Classes to interact with the Database
