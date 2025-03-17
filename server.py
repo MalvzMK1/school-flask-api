@@ -13,6 +13,12 @@ def serialize_teacher(teacher):
         "created_at": teacher.created_at
     }
 
+def serialize_course_class(course_class):
+    return {
+        "id": course_class.id,
+        "teacher": serialize_teacher(course_class.teacher),
+        "created_at": course_class.created_at
+    }
 
 class HashMap[K, V]:
   def __init__(self):
@@ -464,6 +470,7 @@ teacher_controller = TeacherController()
 course_class_controller = CourseClassController()
 
 
+## ALUNOS
 @app.route('/students', methods=['GET'])
 def get_all_students():
     try:
@@ -539,7 +546,7 @@ def get_student_course_classes(id):
         abort(404, description=str(e))
 
 
-# PROFESSORES
+## PROFESSORES
 @app.route('/teachers', methods=['GET'])
 def get_all_teachers():
     try:
@@ -617,6 +624,81 @@ def get_teacher_students_by_id(id):
         ]})
     except Exception as e:
         abort(404, str(e))
+
+
+## TURMAS
+@app.route('/course-classes', methods=['GET'])
+def get_all_course_classes():
+    try:
+        course_classes = course_class_controller.get_all()
+        return jsonify({"course_classes": [serialize_course_class(c) for c in course_classes]})
+    except Exception as e:
+        abort(500, str(e))
+
+@app.route('/course-classes/<int:id>', methods=['GET'])
+def get_course_class_by_id(id):
+    try:
+        course_class = course_class_controller.get_by_id(id)
+        return jsonify(serialize_course_class(course_class))
+    except Exception as e:
+        abort(404, str(e))
+
+@app.route('/course-classes', methods=['POST'])
+def create_course_class():
+    try:
+        data = request.get_json()
+
+        if not data or 'teacher_id' not in data:
+            abort(400, 'Missing required field: teacher_id')
+
+        teacher_id = data['teacher_id']
+        course_class_id = course_class_controller.create(CourseClass(teacher_id=teacher_id))
+
+        return jsonify({"id": course_class_id}), 201
+
+    except Exception as e:
+        abort(500, str(e))
+
+@app.route('/course-classes/<int:id>', methods=['PUT'])
+def update_course_class(id):
+    try:
+        data = request.get_json()
+
+        if not data or 'teacher_id' not in data:
+            abort(400, 'Missing required field: teacher_id')
+
+        teacher_id = data['teacher_id']
+        course_class_controller.update_by_id(id, teacher_id)
+
+        return jsonify({"message": "Course class updated successfully"})
+
+    except Exception as e:
+        abort(404, str(e))
+
+@app.route('/course-classes/<int:id>', methods=['DELETE'])
+def delete_course_class(id):
+    try:
+        course_class_controller.delete_by_id(id)
+        return jsonify({"message": "Course class deleted successfully"})
+    except Exception as e:
+        abort(404, str(e))
+
+@app.route('/course-classes/<int:id>/students', methods=['GET'])
+def get_students_by_course_class_id(id):
+    try:
+        result = course_class_controller.get_students_by_course_class_id(id)
+        return jsonify(result)
+    except Exception as e:
+        abort(404, str(e))
+
+@app.route('/course-classes/<int:course_class_id>/students/<int:student_id>', methods=['DELETE'])
+def remove_student_from_course_class(course_class_id, student_id):
+    try:
+        course_class_controller.remove_student_from_course_class(course_class_id, student_id)
+        return jsonify({"message": "Student removed from course class successfully"})
+    except Exception as e:
+        abort(404, str(e))
+
 
 if __name__ == '__main__':
   app.run(debug=True)
