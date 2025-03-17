@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify, request, abort
 from datetime import datetime
 from abc import ABC, abstractmethod
 
@@ -161,7 +161,7 @@ class Student(Entity, Person):
   def __init__(self, name: str, birthdate: datetime):
     Entity.__init__(self)
     Person.__init__(self, name, birthdate)
-    self.__course_classes: HashMap[int, CourseClass] = {}
+    self.__course_classes = HashMap[int, CourseClass]()
 
   @property
   def course_classes(self) -> HashMap[int, CourseClass]:
@@ -185,9 +185,9 @@ REPOSITORIES -> Classes to interact with the Database
 
 class Repository:
   def __init__(self):
-    self.__students: HashMap[int, Student] = []
-    self.__teachers: HashMap[int, Teacher] = []
-    self.__course_classes: HashMap[int, CourseClass] = []
+    self.__students = HashMap[int, Student]()
+    self.__teachers = HashMap[int, Teacher]()
+    self.__course_classes = HashMap[int, CourseClass]()
   
   @property
   def students(self) -> HashMap[int, Student]:
@@ -202,7 +202,7 @@ class Repository:
     return self.__course_classes
 
   def add_student(self, student: Student) -> None:
-    self.__students.add(student)
+    self.__students.add(student.id, student)
   
   def delete_student_by_id(self, student_id) -> None:
     self.__students.remove(student_id)
@@ -214,7 +214,7 @@ class Repository:
     student.birthdate = birthdate
   
   def add_teacher(self, teacher: Teacher) -> None:
-    self.__teachers.add(teacher)
+    self.__teachers.add(teacher.id, teacher)
 
   def delete_teacher_by_id(self, teacher_id) -> None:
     self.__teachers.remove(teacher_id)
@@ -226,7 +226,7 @@ class Repository:
     teacher.birthdate = birthdate
   
   def add_course_class(self, course_class: CourseClass) -> None:
-    self.__course_classes.add(course_class)
+    self.__course_classes.add(course_class.id, course_class)
   
   def delete_course_class_by_id(self, course_class_id) -> None:
     self.__course_classes.remove(course_class_id)
@@ -239,21 +239,6 @@ class Repository:
   def add_student_to_course_class(self, student: Student, course_class: CourseClass) -> None:
     course_class.add_student(student)
     student.add_course_class(course_class)
-    # course_class = self.__course_classes.get(course_class_id)
-
-    # if course_class is None:
-    #   raise KeyError('Turma não encontrada')
-
-    # student = self.__students.get(student_id)
-    
-    # if student is None:
-    #   raise KeyError('Aluno não encontrado')
-
-    # if course_class.students.get(student_id) is not None:
-    #   raise Exception('Aluno já está incluso na turma')
-    
-    # course_class.add_student(student)
-    # student.add_course_class(course_class)
 
   def remove_student_from_course_class(self, student: Student, course_class: CourseClass) -> None:
     student.remove_course_class_by_id(course_class.id)
@@ -294,6 +279,7 @@ class BaseController[Model](ABC):
   @abstractmethod
   def create(self, data: Model) -> int:
     pass
+
 
 class StudentController(BaseController[Student]):
   def __init__(self):
@@ -341,6 +327,7 @@ class StudentController(BaseController[Student]):
       raise Exception('Aluno não encontrado')
     
     return student
+
 
 class TeacherController(BaseController[Teacher]):
   def __init__(self):
@@ -451,9 +438,7 @@ class CourseClassController(BaseController[CourseClass]):
     if student is None:
       raise Exception('Aluno não encontrado')
     
-    course_class.remove_student_by_id(student_id)
-    student.remove_course_class_by_id(course_class_id)
-
+    self._repository.remove_student_from_course_class(student, course_class)
   
   def __validate_course_class_existence_and_return(self, id: int) -> CourseClass:
     course_class = self._repository.course_classes.get(id)
@@ -467,9 +452,86 @@ class CourseClassController(BaseController[CourseClass]):
 """
 ROUTES -> Definition of the routes pointing to each specific controller
 """
-
-
 app = Flask(__name__)
+student_controller = StudentController()
+teacher_controller = TeacherController()
+course_class_controller = CourseClassController()
+
+
+@app.route('/students', methods=['GET'])
+def get_all_students():
+    try:
+        result = student_controller.get_all()
+        return jsonify({
+            "students": [{"id": s.id, "name": s.name, "created_at": s.created_at} for s in result]
+        })
+    except Exception as e:
+        abort(500, description=str(e))
+
+@app.route('/students/<int:id>', methods=['GET'])
+def get_student_by_id(id):
+    try:
+        student = student_controller.get_by_id(id)
+        return jsonify({
+            "id": student.id, "name": student.name, "created_at": student.created_at
+        })
+    except Exception as e:
+        abort(404, description=str(e))
+
+@app.route('/students/<int:id>', methods=['DELETE'])
+def delete_student(id):
+    try:
+        student_controller.delete_by_id(id)
+        return jsonify({"message": "Student deleted successfully"}), 204
+    except Exception as e:
+        abort(404, description=str(e))
+
+@app.route('/students/<int:id>', methods=['PUT'])
+def update_student(id):
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        birthdate = datetime.strptime(data.get('birthdate'), '%Y-%m-%d')
+
+        if not name or not birthdate:
+            abort(400, description="Missing required fields")
+
+        student_controller.update_by_id(id, name, birthdate)
+        return jsonify({"message": "Student updated successfully"})
+    except ValueError:
+        abort(400, description="Invalid date format. Use YYYY-MM-DD")
+    except Exception as e:
+        abort(404, description=str(e))
+
+@app.route('/students', methods=['POST'])
+def create_student():
+    data = request.get_json()
+
+    try:
+        name = data.get('name')
+        birthdate = datetime.strptime(data.get('birthdate'), '%Y-%m-%d')
+
+        if not name or not birthdate:
+            abort(400, description="Missing required fields")
+
+        student = Student(name=name, birthdate=birthdate)
+        student_controller.create(student)
+
+        return jsonify({"id": student.id, "message": "Student created successfully"}), 201
+    except ValueError:
+        abort(400, description="Invalid date format. Use YYYY-MM-DD")
+    except Exception as e:
+        abort(500, description=str(e))
+
+@app.route('/students/<int:id>/course-classes', methods=['GET'])
+def get_student_course_classes(id):
+    try:
+        result = student_controller.get_course_classes_by_student_id(id)
+
+        return jsonify(result)
+    except Exception as e:
+        abort(404, description=str(e))
+
 
 if __name__ == '__main__':
-  pass
+  app.run(debug=True)
