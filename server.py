@@ -29,6 +29,14 @@ class HashMap[K, V]:
 
   def get(self, key: K) -> V:
     return self.__elements[key] if key in self.__elements else None
+  
+  def to_list(self) -> list[V]:
+    arr: list[V] = []
+
+    for key in self.__elements:
+      arr.append(self.__elements[key])
+
+    return arr
 
   def __repr__(self):
     return self.__elements.__str__()
@@ -171,6 +179,83 @@ class Student(Entity, Person):
 """
 REPOSITORIES -> Classes to interact with the Database
 """
+
+
+class Repository:
+  def __init__(self):
+    self.__students: HashMap[int, Student] = []
+    self.__teachers: HashMap[int, Teacher] = []
+    self.__course_classes: HashMap[int, CourseClass] = []
+  
+  @property
+  def students(self) -> HashMap[int, Student]:
+    return self.__students
+
+  @property
+  def teachers(self) -> HashMap[int, Teacher]:
+    return self.__teachers
+
+  @property
+  def course_classes(self) -> HashMap[int, CourseClass]:
+    return self.__course_classes
+
+  def add_student(self, student: Student) -> None:
+    self.__students.add(student)
+  
+  def remove_student_by_id(self, student_id) -> None:
+    self.__students.remove(student_id)
+
+  def update_student_by_id(self, student_id: int, name: str, birthdate: datetime) -> None:
+    student = self.__students.get(student_id)
+
+    student.name = name
+    student.birthdate = birthdate
+  
+  def add_teacher(self, teacher: Teacher) -> None:
+    self.__teachers.add(teacher)
+
+  def remove_teacher_by_id(self, teacher_id) -> None:
+    self.__teachers.remove(teacher_id)
+
+  def update_teacher_by_id(self, teacher_id: int, name: str, birthdate: datetime) -> None:
+    teacher = self.__teachers.get(teacher_id)
+
+    teacher.name = name
+    teacher.birthdate = birthdate
+  
+  def add_course_class(self, course_class: CourseClass) -> None:
+    self.__course_classes.add(course_class)
+  
+  def remove_course_class_by_id(self, course_class_id) -> None:
+    self.__course_classes.remove(course_class_id)
+
+  def update_course_class_by_id(self, course_class_id: int, teacher: Teacher) -> None:
+    course_class = self.__course_classes.get(course_class_id)
+
+    course_class.teacher = teacher
+  
+  def add_student_to_course_class(self, student: Student, course_class: CourseClass) -> None:
+    course_class.add_student(student)
+    student.add_course_class(course_class)
+    # course_class = self.__course_classes.get(course_class_id)
+
+    # if course_class is None:
+    #   raise KeyError('Turma não encontrada')
+
+    # student = self.__students.get(student_id)
+    
+    # if student is None:
+    #   raise KeyError('Aluno não encontrado')
+
+    # if course_class.students.get(student_id) is not None:
+    #   raise Exception('Aluno já está incluso na turma')
+    
+    # course_class.add_student(student)
+    # student.add_course_class(course_class)
+
+  def remove_student_from_course_class(self, student: Student, course_class: CourseClass) -> None:
+    student.remove_course_class_by_id(course_class.id)
+    course_class.remove_student_by_id(student.id)
 
 
 """
