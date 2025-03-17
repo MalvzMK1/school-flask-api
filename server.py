@@ -1,6 +1,6 @@
 from flask import Flask
 from datetime import datetime
-from abc import ABC
+from abc import ABC, abstractmethod
 
 
 """
@@ -79,7 +79,7 @@ class Entity(ABC):
 class Person(ABC):
   def __init__(self, name: str, birthdate: datetime):
     self._name = name
-    self._birthdate = birthdate
+    self._birthdate = birthdate if isinstance(birthdate, datetime) else None
 
   @property
   def name(self) -> str:
@@ -99,8 +99,10 @@ class Person(ABC):
 
   @property
   def age(self) -> int:
+    if self._birthdate is None: return
+
     today = datetime.now()
-    return (today - self.__birthdate).days // 365
+    return (today - self._birthdate).days // 365
 
 class Teacher(Entity, Person):
   def __init__(self, name: str, birthdate: datetime):
@@ -202,7 +204,7 @@ class Repository:
   def add_student(self, student: Student) -> None:
     self.__students.add(student)
   
-  def remove_student_by_id(self, student_id) -> None:
+  def delete_student_by_id(self, student_id) -> None:
     self.__students.remove(student_id)
 
   def update_student_by_id(self, student_id: int, name: str, birthdate: datetime) -> None:
@@ -214,7 +216,7 @@ class Repository:
   def add_teacher(self, teacher: Teacher) -> None:
     self.__teachers.add(teacher)
 
-  def remove_teacher_by_id(self, teacher_id) -> None:
+  def delete_teacher_by_id(self, teacher_id) -> None:
     self.__teachers.remove(teacher_id)
 
   def update_teacher_by_id(self, teacher_id: int, name: str, birthdate: datetime) -> None:
@@ -226,7 +228,7 @@ class Repository:
   def add_course_class(self, course_class: CourseClass) -> None:
     self.__course_classes.add(course_class)
   
-  def remove_course_class_by_id(self, course_class_id) -> None:
+  def delete_course_class_by_id(self, course_class_id) -> None:
     self.__course_classes.remove(course_class_id)
 
   def update_course_class_by_id(self, course_class_id: int, teacher: Teacher) -> None:
@@ -258,9 +260,145 @@ class Repository:
     course_class.remove_student_by_id(student.id)
 
 
+# make data be atomic
+# TODO: need to improve this later
+repository = Repository()
+
+
 """
 CONTROLLERS -> Classes that will deal with the HTTP request
 """
+
+
+class BaseController[Model](ABC):
+  def __init__(self):
+    self._repository = repository
+
+  @abstractmethod
+  def get_all(self) -> list[Model]:
+    pass
+
+  @abstractmethod
+  def get_by_id(self, id: int) -> Model:
+    pass
+
+  @abstractmethod
+  def delete_by_id(self, id: int) -> None:
+    pass
+
+  @abstractmethod
+  # TODO: find a way to type the data
+  def update_by_id(self, id: int, *data) -> None:
+    pass
+
+  @abstractmethod
+  def create(self, data: Model) -> int:
+    pass
+
+class StudentController(BaseController[Student]):
+  def __init__(self):
+    super().__init__()
+  
+  def get_all(self):
+    return self._repository.students.to_list()
+
+  def get_by_id(self, id: int):
+    student = self.__validate_student_existence_and_return(id)
+
+    return student
+  
+  def delete_by_id(self, id: int):
+    self.__validate_student_existence_and_return(id)
+
+    self._repository.delete_student_by_id(id)
+
+  def update_by_id(self, id: int, name: str, birthdate: datetime):
+    self.__validate_student_existence_and_return(id)
+
+    self._repository.update_student_by_id(id, name, birthdate)
+  
+  def create(self, data):
+    if not isinstance(data, Student):
+      raise Exception('Dados incorretos')
+
+    return self._repository.add_student(data)
+  
+  def get_course_classes_by_student_id(self, id: int) -> dict:
+    student = self.__validate_student_existence_and_return(id)
+
+    return {
+      "student": {
+        "name": student.name,
+        "age": student.age
+      },
+      "course_classes": student.course_classes.to_list()
+    }
+  
+  def __validate_student_existence_and_return(self, id: int) -> Student:
+    student = self._repository.students.get(id)
+
+    if student is None:
+      raise Exception('Aluno não encontrado')
+    
+    return student
+
+class TeacherController(BaseController[Teacher]):
+  def __init__(self):
+    super().__init__()
+
+  def get_all(self):
+    return self._repository.teachers.to_list()
+
+  def get_by_id(self, id: int):
+    teacher = self.__validate_teacher_existence_and_return(id)
+
+    return teacher
+  
+  def delete_by_id(self, id: int):
+    self.__validate_teacher_existence_and_return(id)
+
+    self._repository.delete_teacher_by_id(id)
+
+  def update_by_id(self, id: int, name: str, birthdate: datetime):
+    self.__validate_teacher_existence_and_return(id)
+
+    self._repository.update_teacher_by_id(id, name, birthdate)
+  
+  def create(self, data):
+    if not isinstance(data, Teacher):
+      raise Exception('Dados incorretos')
+
+    return self._repository.add_teacher(data)
+  
+  def get_course_classes_by_teacher_id(self, id: int) -> dict:
+    teacher = self.__validate_teacher_existence_and_return(id)
+
+    return {
+      "teacher": {
+        "name": teacher.name,
+        "age": teacher.age
+      },
+      "course_classes": teacher.course_classes.to_list()
+    }
+  
+  def get_teacher_students_by_id(self, id: int) -> list[Student]:
+    teacher = self.__validate_teacher_existence_and_return(id)
+    students_set = set[Student]()
+
+    for course_class in teacher.course_classes.to_list():
+      for student in course_class.students.to_list():
+        students_set.add(student)
+
+    return list(students_set)
+
+  def __validate_teacher_existence_and_return(self, id) -> Teacher:
+    teacher = self._repository.teachers.get(id)
+
+    if teacher is None:
+      raise Exception('Professor não encontrado')
+    
+    return teacher
+  
 
 
 """
@@ -270,6 +408,25 @@ ROUTES -> Definition of the routes pointing to each specific controller
 
 app = Flask(__name__)
 
-
 if __name__ == '__main__':
-  pass
+  teacher = Teacher('joel', 19)
+  cc = CourseClass(teacher)
+  cc2 = CourseClass(teacher)
+
+  teacher.add_course_class(cc)
+  teacher.add_course_class(cc2)
+
+  student1 = Student('ak', datetime(2006, 2, 11))
+  student2 = Student('ab', datetime(2005, 2, 11))
+  student3 = Student('ac', datetime(2001, 2, 11))
+
+  cc.add_student(student1)
+  cc.add_student(student2)
+  cc.add_student(student3)
+  cc2.add_student(student2)
+  cc2.add_student(student3)
+
+  a = list({student for course_class in teacher.course_classes.to_list() for student in course_class.students.to_list()})
+
+  for b in a:
+    print(b.name, b.age)
