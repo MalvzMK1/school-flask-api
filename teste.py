@@ -185,5 +185,16 @@ class TestSchoolMethods(unittest.TestCase):
         response_check_json = response_check.json()
         self.assertEqual(response_check_json['id'], self.student_id)
         self.assertEqual(response_check_json['name'], updated_data['name'])
+        
+    # DELETE para excluir um professor
+    def test_010_delete_teacher(self):
+        response = requests.delete(f'{self.BASE_URL}/teachers/{self.teacher_id}')
+        self.assertEqual(response.status_code, 200)
+        response_json = response.json()
+        self.assertEqual(response_json['message'], 'Teacher deleted successfully')
+
+        # Verifica se o professor foi realmente deletado
+        response_check = requests.get(f'{self.BASE_URL}/teachers/{self.teacher_id}')
+        self.assertEqual(response_check.status_code, 404)
 if __name__ == '__main__':
     unittest.main()
