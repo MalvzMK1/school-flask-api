@@ -136,5 +136,29 @@ class TestSchoolMethods(unittest.TestCase):
         response_json = response.json()
         self.assertEqual(response_json['id'], self.course_class_id)
 
+     # ============= PUTS ====================
+    def test_010_update_teacher(self):
+        updated_data = {
+            'name': 'John Updated',
+            'birthdate': '1985-07-10'
+        }
+        
+        response = requests.put(
+            f'{self.BASE_URL}/teachers/{self.teacher_id}', 
+            json=updated_data
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        response_json = response.json()
+        self.assertEqual(response_json['message'], 'Teacher updated successfully')
+
+        # Verifique se os dados foram realmente atualizados
+        response_check = requests.get(f'{self.BASE_URL}/teachers/{self.teacher_id}')
+        self.assertEqual(response_check.status_code, 200)
+
+        response_check_json = response_check.json()
+        self.assertEqual(response_check_json['id'], self.teacher_id)
+        self.assertEqual(response_check_json['name'], updated_data['name'])
 if __name__ == '__main__':
     unittest.main()
