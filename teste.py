@@ -115,5 +115,26 @@ class TestSchoolMethods(unittest.TestCase):
         self.assertEqual(response_json['id'], self.student_id)
         self.assertEqual(response_json['name'], 'Jane Smith')
         
+    # Teste GET para buscar todos os cursos
+    def test_008_get_all_course_classes(self):
+        response = requests.get(f'{self.BASE_URL}/course-classes')
+
+        self.assertEqual(response.status_code, 200)
+
+        response_json = response.json()
+        self.assertIn('course_classes', response_json)
+        self.assertGreater(len(response_json['course_classes']), 0) 
+
+    # Teste GET para buscar uma turma específica
+    def test_009_get_course_class_by_id(self):
+        """
+        Teste GET para buscar uma turma específica.
+        """
+        response = requests.get(f'{self.BASE_URL}/course-classes/{self.course_class_id}')
+        self.assertEqual(response.status_code, 200)
+
+        response_json = response.json()
+        self.assertEqual(response_json['id'], self.course_class_id)
+
 if __name__ == '__main__':
     unittest.main()
