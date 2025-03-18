@@ -319,7 +319,9 @@ class StudentController(BaseController[Student]):
     if not isinstance(data, Student):
       raise Exception('Dados incorretos')
 
-    return self._repository.add_student(data)
+    self._repository.add_student(data)
+
+    return data.id
   
   def get_course_classes_by_student_id(self, id: int) -> dict:
     student = self.__validate_student_existence_and_return(id)
@@ -367,7 +369,9 @@ class TeacherController(BaseController[Teacher]):
     if not isinstance(data, Teacher):
       raise Exception('Dados incorretos')
 
-    return self._repository.add_teacher(data)
+    self._repository.add_teacher(data)
+
+    return data.id
   
   def get_course_classes_by_teacher_id(self, id: int) -> dict:
     teacher = self.__validate_teacher_existence_and_return(id)
@@ -426,11 +430,17 @@ class CourseClassController(BaseController[CourseClass]):
 
     self._repository.update_course_class_by_id(id, teacher)
   
-  def create(self, data):
-    if not isinstance(data, Student):
-      raise Exception('Dados incorretos')
+  def create(self, teacher_id):
+    teacher = self._repository.teachers.get(teacher_id)
 
-    return self._repository.add_student(data)
+    if teacher is None:
+        raise Exception('Professor não encontrado')
+
+    course_class = CourseClass(teacher)
+
+    self._repository.add_course_class(course_class)
+
+    return course_class.id
   
   def get_students_by_course_class_id(self, id: int) -> dict:
     course_class = self.__validate_course_class_existence_and_return(id)
@@ -574,7 +584,7 @@ def create_teacher():
         birthdate = datetime.strptime(data['birthdate'], '%Y-%m-%d')
         teacher_id = teacher_controller.create(Teacher(name=data['name'], birthdate=birthdate))
 
-        return jsonify({"id": teacher_id}), 201
+        return jsonify({"id": teacher_id, "message": "Professor criado com sucesso"}), 201
 
     except ValueError:
         abort(400, 'Invalid date format. Use YYYY-MM-DD')
@@ -645,16 +655,16 @@ def get_course_class_by_id(id):
 
 @app.route('/course-classes', methods=['POST'])
 def create_course_class():
-    try:
-        data = request.get_json()
+    data = request.get_json()
 
+    try:
         if not data or 'teacher_id' not in data:
             abort(400, 'Missing required field: teacher_id')
 
         teacher_id = data['teacher_id']
-        course_class_id = course_class_controller.create(CourseClass(teacher_id=teacher_id))
+        course_class_id = course_class_controller.create(teacher_id)
 
-        return jsonify({"id": course_class_id}), 201
+        return jsonify({"id": course_class_id, "message": "Turma criada com sucesso"}), 201
 
     except Exception as e:
         abort(500, str(e))
