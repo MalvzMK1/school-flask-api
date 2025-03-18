@@ -64,5 +64,28 @@ class TestSchoolMethods(unittest.TestCase):
         self.assertEqual(response_json['id'], self.student_id)
         self.assertEqual(response_json['name'], 'Jane Smith')
 
+    # Teste POST para cadastrar uma turma
+    def test_003_create_course_class(self):
+        response_course_class = requests.post(
+            f'{self.BASE_URL}/course-classes',
+            json={'teacher_id': self.teacher_id}  
+        )
+
+        self.assertEqual(response_course_class.status_code, 201)
+
+        response_json = response_course_class.json()
+        self.assertIn('id', response_json)  # Verifica se a turma foi criada
+        self.assertEqual(response_json['message'], 'Course class created successfully')
+
+    # Teste GET para buscar todos os professores
+    def test_004_get_all_teachers(self):
+        response = requests.get(f'{self.BASE_URL}/teachers')
+
+        self.assertEqual(response.status_code, 200)
+
+        response_json = response.json()
+        self.assertIn('teachers', response_json)
+        self.assertGreater(len(response_json['teachers']), 0)
+
 if __name__ == '__main__':
     unittest.main()
