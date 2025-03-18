@@ -469,6 +469,21 @@ class CourseClassController(BaseController[CourseClass]):
       raise Exception('Aluno não encontrado')
     
     self._repository.remove_student_from_course_class(student, course_class)
+
+  def add_student_to_course_class(self, course_class_id: int, student_id: int) -> None:
+    course_class = self.__validate_course_class_existence_and_return(course_class_id)
+
+    if course_class is None:
+       return "Turma não encontrada", 404
+
+    student: Student = self._repository.students.get(student_id)
+
+    if student is None:
+      return 'Aluno não encontrado', 404
+    
+    self._repository.add_student_to_course_class(student, course_class)
+
+    return "Aluno adicionado com sucesso", 204
   
   def __validate_course_class_existence_and_return(self, id: int) -> CourseClass:
     course_class = self._repository.course_classes.get(id)
@@ -712,6 +727,13 @@ def remove_student_from_course_class(course_class_id, student_id):
         return jsonify({"message": "Student removed from course class successfully"})
     except Exception as e:
         abort(404, str(e))
+
+@app.route('/course-classes/<int:course_class_id>/students/<int:student_id>', methods=['POST'])
+def add_student_to_course_class(course_class_id, student_id):
+    try:
+        return course_class_controller.add_student_to_course_class(course_class_id, student_id)
+    except Exception as e:
+        abort(500, str(e))
 
 
 if __name__ == '__main__':
