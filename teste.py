@@ -204,6 +204,16 @@ class TestSchoolMethods(unittest.TestCase):
 
         # Verifica se o aluno foi realmente deletado
         response_check = requests.get(f'{self.BASE_URL}/students/{self.student_id}')
-        self.assertEqual(response_check.status_code, 404)    
+        self.assertEqual(response_check.status_code, 404)
+        
+    # DELETE para excluir uma turma
+    def test_014_delete_course_class(self):
+      response = requests.delete(f'{self.BASE_URL}/course-classes/{self.course_class_id}')
+      self.assertEqual(response.status_code, 200)  
+      
+      # Verifica se a turma foi realmente deletada
+      response_check = requests.get(f'{self.BASE_URL}/course-classes/{self.course_class_id}')
+      self.assertEqual(response_check.status_code, 404)
+      
 if __name__ == '__main__':
     unittest.main()
