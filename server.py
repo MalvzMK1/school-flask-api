@@ -408,17 +408,25 @@ class CourseClassController(BaseController[CourseClass]):
     super().__init__()
 
   def get_all(self):
-    return self._repository.course_classes.to_list()
+    return jsonify({"course_classes": [serialize_course_class(course_class) for course_class in self._repository.course_classes.to_list()]})
 
   def get_by_id(self, id: int):
     course_class = self.__validate_course_class_existence_and_return(id)
 
-    return course_class
+    if not isinstance(course_class, CourseClass):
+        return "Course class not found", 404
+
+    return jsonify(serialize_course_class(course_class))
   
   def delete_by_id(self, id: int):
-    self.__validate_course_class_existence_and_return(id)
+    exist = self.__validate_course_class_existence_and_return(id)
+
+    if exist is None:
+        return "Course class not found", 404
 
     self._repository.delete_course_class_by_id(id)
+
+    return "Deleted course class successfully", 200
 
   def update_by_id(self, id: int, teacher_id: int):
     self.__validate_course_class_existence_and_return(id)
@@ -434,7 +442,7 @@ class CourseClassController(BaseController[CourseClass]):
     teacher = self._repository.teachers.get(teacher_id)
 
     if teacher is None:
-        raise Exception('Professor não encontrado')
+        return 
 
     course_class = CourseClass(teacher)
 
@@ -465,9 +473,6 @@ class CourseClassController(BaseController[CourseClass]):
   def __validate_course_class_existence_and_return(self, id: int) -> CourseClass:
     course_class = self._repository.course_classes.get(id)
 
-    if course_class is None:
-      raise Exception('Turma não encontrada')
-    
     return course_class
 
 
@@ -640,8 +645,7 @@ def get_teacher_students_by_id(id):
 @app.route('/course-classes', methods=['GET'])
 def get_all_course_classes():
     try:
-        course_classes = course_class_controller.get_all()
-        return jsonify({"course_classes": [serialize_course_class(c) for c in course_classes]})
+        return course_class_controller.get_all()
     except Exception as e:
         abort(500, str(e))
 
@@ -649,7 +653,8 @@ def get_all_course_classes():
 def get_course_class_by_id(id):
     try:
         course_class = course_class_controller.get_by_id(id)
-        return jsonify(serialize_course_class(course_class))
+
+        return course_class
     except Exception as e:
         abort(404, str(e))
 
@@ -664,7 +669,7 @@ def create_course_class():
         teacher_id = data['teacher_id']
         course_class_id = course_class_controller.create(teacher_id)
 
-        return jsonify({"id": course_class_id, "message": "Turma criada com sucesso"}), 201
+        return jsonify({"id": course_class_id, "message": "Course class created successfully"}), 201
 
     except Exception as e:
         abort(500, str(e))
@@ -688,10 +693,9 @@ def update_course_class(id):
 @app.route('/course-classes/<int:id>', methods=['DELETE'])
 def delete_course_class(id):
     try:
-        course_class_controller.delete_by_id(id)
-        return jsonify({"message": "Course class deleted successfully"})
+        return course_class_controller.delete_by_id(id)
     except Exception as e:
-        abort(404, str(e))
+        abort(500, str(e))
 
 @app.route('/course-classes/<int:id>/students', methods=['GET'])
 def get_students_by_course_class_id(id):
