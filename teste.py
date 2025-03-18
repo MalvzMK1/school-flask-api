@@ -77,5 +77,27 @@ class TestSchoolMethods(unittest.TestCase):
         self.assertIn('id', response_json)  # Verifica se a turma foi criada
         self.assertEqual(response_json['message'], 'Course class created successfully')
 
+    # Teste GET para buscar todos os professores
+    def test_004_get_all_teachers(self):
+        response = requests.get(f'{self.BASE_URL}/teachers')
+
+        self.assertEqual(response.status_code, 200)
+
+        response_json = response.json()
+        self.assertIn('teachers', response_json)
+        self.assertGreater(len(response_json['teachers']), 0)
+
+    # Teste GET para buscar um professor específico
+    def test_005_get_teacher_by_id(self):
+        """
+        Teste GET para buscar um professor específico.
+        """
+        response = requests.get(f'{self.BASE_URL}/teachers/{self.teacher_id}')
+        self.assertEqual(response.status_code, 200)
+
+        response_json = response.json()
+        self.assertEqual(response_json['id'], self.teacher_id)
+        self.assertEqual(response_json['name'], 'John Doe')
+        
 if __name__ == '__main__':
     unittest.main()
