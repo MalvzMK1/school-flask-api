@@ -137,9 +137,6 @@ class TestSchoolMethods(unittest.TestCase):
 
     # Teste GET para buscar uma turma específica
     def test_009_get_course_class_by_id(self):
-        """
-        Teste GET para buscar uma turma específica.
-        """
         response = requests.get(f'{self.BASE_URL}/course-classes/{self.course_class_id}')
         self.assertEqual(response.status_code, 200)
 
@@ -198,21 +195,20 @@ class TestSchoolMethods(unittest.TestCase):
         self.assertEqual(response_check_json['id'], self.student_id)
         self.assertEqual(response_check_json['name'], updated_data['name'])
         print(f"Aluno atualizado com sucesso: \033[32m{response_check_json['name']}\033[0m")
-        
+
     # DELETE para excluir um professor
-    def test_010_delete_teacher(self):
+    def test_013_delete_teacher(self):
         response = requests.delete(f'{self.BASE_URL}/teachers/{self.teacher_id}')
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
         self.assertEqual(response_json['message'], 'Teacher deleted successfully')
 
-        # Verifica se o professor foi realmente deletado
         response_check = requests.get(f'{self.BASE_URL}/teachers/{self.teacher_id}')
         self.assertEqual(response_check.status_code, 404)
         print(f"Professor deletado com sucesso: \033[32m{response.status_code}\033[0m")
 
     # DELETE para excluir um aluno
-    def test_013_delete_student(self):
+    def test_014_delete_student(self):
         response = requests.delete(f'{self.BASE_URL}/students/{self.student_id}')
         self.assertEqual(response.status_code, 204)  
 
