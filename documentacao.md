@@ -37,7 +37,6 @@ Recupera todos os alunos.
 
 ### Descrição: Cria um novo aluno, a partir do corpo da requisição que deve incluir name e birthdate.
 ```
-Corpo da requisição:
 json
 
 {
