@@ -238,5 +238,32 @@ class TestSchoolMethods(unittest.TestCase):
         student = response_check.json()['students'][0]
         self.assertEqual(student['id'], self.student_id)
 
+    def test_016_update_course_class(self):
+        updated_data = {
+            'teacher_id': self.teacher_id  
+        }
+        
+        response = requests.put(
+            f'{self.BASE_URL}/course-classes/{self.course_class_id}',
+            json=updated_data
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        response_json = response.json()
+
+        self.assertEqual(response_json['message'], 'Course class updated successfully')
+
+        response_check = requests.get(f'{self.BASE_URL}/course-classes/{self.course_class_id}')
+        self.assertEqual(response_check.status_code, 200)
+
+        response_check_json = response_check.json()
+
+        self.assertIn('teacher', response_check_json, "O campo 'teacher' não foi encontrado na resposta.")
+        
+        self.assertEqual(response_check_json['teacher']['id'], updated_data['teacher_id'])
+
+        print(f"Turma \033[32m{self.course_class_id}\033[0m atualizada com o novo teacher_id \033[32m{updated_data['teacher_id']}\033[0m com sucesso!")
+
 if __name__ == '__main__':
     unittest.main()
