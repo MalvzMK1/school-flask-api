@@ -35,11 +35,11 @@ Recupera todos os alunos.
 
 ## Método: POST
 
-###Descrição: Cria um novo aluno, a partir do corpo da requisição que deve incluir name e birthdate.
+### Descrição: Cria um novo aluno, a partir do corpo da requisição que deve incluir name e birthdate.
 ```
 Corpo da requisição:
 json
-Copiar
+
 {
   "name": "John Doe",
   "birthdate": "2000-01-01"
