@@ -68,3 +68,15 @@ json
 }
 
 ```
+# Excluir Aluno
+
+## Metodo: Delete 
+
+### Excluir o aluno com base no id
+
+```
+{
+  "message": "Student deleted successfully"
+}
+
+```
