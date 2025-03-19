@@ -83,7 +83,9 @@ json
 
 ## Metodo: get 
 
-### Vai rertorna as turmas que estão associdas ao aluno
+### /students/<int:id>/course-classes
+
+#### Vai rertorna as turmas que estão associdas ao aluno
 
 ```
 
