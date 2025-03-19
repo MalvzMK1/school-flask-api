@@ -51,4 +51,20 @@ json
   "id": 1,
   "message": "Student created successfully"
 }
+
+```
+
+# Atualizar informações de um aluno
+
+## Método: PUT 
+
+### Descrição: Atualizar o nome e a data de nascimento de um aluno com base no id 
+
+```
+
+{
+  "name": "John Doe Updated",
+  "birthdate": "2000-01-02"
+}
+
 ```
