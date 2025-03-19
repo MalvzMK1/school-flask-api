@@ -52,6 +52,8 @@ class TestSchoolMethods(unittest.TestCase):
         response_json = response.json()
         self.assertEqual(response_json['id'], self.teacher_id)
         self.assertEqual(response_json['name'], 'John Doe')
+        print(f"Professor criado com sucesso! Nome do professor: \033[32m{response_json['name']}\033[0m")
+
 
     def test_002_create_student(self):
         """
@@ -63,6 +65,8 @@ class TestSchoolMethods(unittest.TestCase):
         response_json = response.json()
         self.assertEqual(response_json['id'], self.student_id)
         self.assertEqual(response_json['name'], 'Jane Smith')
+        print(f"Aluno criado com sucesso! Nome: \033[32m{response_json['name']}\033[0m")
+
 
     # Teste POST para cadastrar uma turma
     def test_003_create_course_class(self):
@@ -76,6 +80,7 @@ class TestSchoolMethods(unittest.TestCase):
         response_json = response_course_class.json()
         self.assertIn('id', response_json)  # Verifica se a turma foi criada
         self.assertEqual(response_json['message'], 'Course class created successfully')
+        print(f"Turma criada com sucesso \033[32m{response_course_class.status_code}\033[0m")
 
     # Teste GET para buscar todos os professores
     def test_004_get_all_teachers(self):
@@ -86,6 +91,7 @@ class TestSchoolMethods(unittest.TestCase):
         response_json = response.json()
         self.assertIn('teachers', response_json)
         self.assertGreater(len(response_json['teachers']), 0)
+        print(f"Professores encontrados com sucesso! \033[32m{response.status_code}\033[0m")
 
     # Teste GET para buscar um professor específico
     def test_005_get_teacher_by_id(self):
@@ -95,6 +101,7 @@ class TestSchoolMethods(unittest.TestCase):
         response_json = response.json()
         self.assertEqual(response_json['id'], self.teacher_id)
         self.assertEqual(response_json['name'], 'John Doe')
+        print(f"Professore encontrado com sucesso! Nome: \033[32m {response_json['name']} \033[0m")
     
      # Teste GET para buscar todos os alunos
     def test_006_get_all_students(self):
@@ -105,6 +112,7 @@ class TestSchoolMethods(unittest.TestCase):
         response_json = response.json()
         self.assertIn('students', response_json)
         self.assertGreater(len(response_json['students']), 0)
+        print(f"Alunos encontrados com sucesso! \033[32m{response.status_code} \033[0m")
 
     # Teste GET para buscar um aluno específico
     def test_007_get_student_by_id(self):
@@ -114,7 +122,8 @@ class TestSchoolMethods(unittest.TestCase):
         response_json = response.json()
         self.assertEqual(response_json['id'], self.student_id)
         self.assertEqual(response_json['name'], 'Jane Smith')
-        
+        print(f"Aluno encontrado com sucesso! Nome: \033[32m{response_json["name"]} \033[0m")
+
     # Teste GET para buscar todos os cursos
     def test_008_get_all_course_classes(self):
         response = requests.get(f'{self.BASE_URL}/course-classes')
@@ -124,6 +133,7 @@ class TestSchoolMethods(unittest.TestCase):
         response_json = response.json()
         self.assertIn('course_classes', response_json)
         self.assertGreater(len(response_json['course_classes']), 0) 
+        print(f"Turmas encontradas com sucesso! \033[32m {response.status_code} \033[0m")
 
     # Teste GET para buscar uma turma específica
     def test_009_get_course_class_by_id(self):
@@ -135,6 +145,7 @@ class TestSchoolMethods(unittest.TestCase):
 
         response_json = response.json()
         self.assertEqual(response_json['id'], self.course_class_id)
+        print(f"Turma encontrada com sucesso! \033[32m {response.status_code} \033[0m")
 
      # ============= PUTS ====================
     def test_010_update_teacher(self):
@@ -160,7 +171,8 @@ class TestSchoolMethods(unittest.TestCase):
         response_check_json = response_check.json()
         self.assertEqual(response_check_json['id'], self.teacher_id)
         self.assertEqual(response_check_json['name'], updated_data['name'])
-        
+        print(f"Professor atualizado com sucesso: \033[32m{response_check_json['name']}\033[0m")
+
     # Teste PUT para atualizar os dados de um aluno específico
     def test_011_update_student(self):
         updated_data = {
@@ -185,6 +197,7 @@ class TestSchoolMethods(unittest.TestCase):
         response_check_json = response_check.json()
         self.assertEqual(response_check_json['id'], self.student_id)
         self.assertEqual(response_check_json['name'], updated_data['name'])
+        print(f"Aluno atualizado com sucesso: \033[32m{response_check_json['name']}\033[0m")
         
     # DELETE para excluir um professor
     def test_010_delete_teacher(self):
@@ -196,7 +209,8 @@ class TestSchoolMethods(unittest.TestCase):
         # Verifica se o professor foi realmente deletado
         response_check = requests.get(f'{self.BASE_URL}/teachers/{self.teacher_id}')
         self.assertEqual(response_check.status_code, 404)
-        
+        print(f"Professor deletado com sucesso: \033[32m{response.status_code}\033[0m")
+
     # DELETE para excluir um aluno
     def test_013_delete_student(self):
         response = requests.delete(f'{self.BASE_URL}/students/{self.student_id}')
@@ -205,7 +219,8 @@ class TestSchoolMethods(unittest.TestCase):
         # Verifica se o aluno foi realmente deletado
         response_check = requests.get(f'{self.BASE_URL}/students/{self.student_id}')
         self.assertEqual(response_check.status_code, 404)
-        
+        print(f"Aluno deletado com sucesso: \033[32m{response.status_code}\033[0m")
+
     # DELETE para excluir uma turma
     def test_014_delete_course_class(self):
       response = requests.delete(f'{self.BASE_URL}/course-classes/{self.course_class_id}')
@@ -214,6 +229,8 @@ class TestSchoolMethods(unittest.TestCase):
       # Verifica se a turma foi realmente deletada
       response_check = requests.get(f'{self.BASE_URL}/course-classes/{self.course_class_id}')
       self.assertEqual(response_check.status_code, 404)
+      print(f"Turma deletada com sucesso: \033[32m{response.status_code}\033[0m")
+
       
 if __name__ == '__main__':
     unittest.main()
