@@ -197,7 +197,7 @@ class TestSchoolMethods(unittest.TestCase):
         print(f"Aluno atualizado com sucesso: \033[32m{response_check_json['name']}\033[0m")
 
     # DELETE para excluir um professor
-    def test_013_delete_teacher(self):
+    def test_012_delete_teacher(self):
         response = requests.delete(f'{self.BASE_URL}/teachers/{self.teacher_id}')
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
@@ -208,7 +208,7 @@ class TestSchoolMethods(unittest.TestCase):
         print(f"Professor deletado com sucesso: \033[32m{response.status_code}\033[0m")
 
     # DELETE para excluir um aluno
-    def test_014_delete_student(self):
+    def test_013_delete_student(self):
         response = requests.delete(f'{self.BASE_URL}/students/{self.student_id}')
         self.assertEqual(response.status_code, 204)  
 
