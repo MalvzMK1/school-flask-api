@@ -80,3 +80,21 @@ json
 }
 
 ```
+# Obter turma de Alunos
+
+## Metodo: get 
+
+### Vai rertorna as turmas que estão associdas ao aluno
+
+```
+
+[
+  {
+    "id": 1,
+    "course_name": "Mathematics",
+    "teacher": "Mr. Smith"
+  },
+  ...
+]
+
+```
