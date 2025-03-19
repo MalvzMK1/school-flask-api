@@ -46,3 +46,9 @@ json
 }
 
 ```
+```
+{
+  "id": 1,
+  "message": "Student created successfully"
+}
+```
