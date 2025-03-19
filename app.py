@@ -458,7 +458,7 @@ class CourseClassController(BaseController[CourseClass]):
         "id": course_class.teacher.id,
         "name": course_class.teacher.name,
       },
-      "students": course_class.students.to_list()
+      "students": [serialize_teacher(student) for student in course_class.students.to_list()]
     }
   
   def remove_student_from_course_class(self, course_class_id: int, student_id: int) -> None:
@@ -474,7 +474,7 @@ class CourseClassController(BaseController[CourseClass]):
     course_class = self.__validate_course_class_existence_and_return(course_class_id)
 
     if course_class is None:
-       return "Turma não encontrada", 404
+        return "Turma não encontrada", 404
 
     student: Student = self._repository.students.get(student_id)
 
@@ -483,7 +483,7 @@ class CourseClassController(BaseController[CourseClass]):
     
     self._repository.add_student_to_course_class(student, course_class)
 
-    return "Aluno adicionado com sucesso", 204
+    return "Aluno adicionado com sucesso", 201
   
   def __validate_course_class_existence_and_return(self, id: int) -> CourseClass:
     course_class = self._repository.course_classes.get(id)
@@ -718,7 +718,8 @@ def get_students_by_course_class_id(id):
         result = course_class_controller.get_students_by_course_class_id(id)
         return jsonify(result)
     except Exception as e:
-        abort(404, str(e))
+        print(e)
+        abort(500, str(e))
 
 @app.route('/course-classes/<int:course_class_id>/students/<int:student_id>', methods=['DELETE'])
 def remove_student_from_course_class(course_class_id, student_id):

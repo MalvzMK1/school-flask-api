@@ -223,14 +223,24 @@ class TestSchoolMethods(unittest.TestCase):
 
     # DELETE para excluir uma turma
     def test_014_delete_course_class(self):
-      response = requests.delete(f'{self.BASE_URL}/course-classes/{self.course_class_id}')
-      self.assertEqual(response.status_code, 200)  
-      
-      # Verifica se a turma foi realmente deletada
-      response_check = requests.get(f'{self.BASE_URL}/course-classes/{self.course_class_id}')
-      self.assertEqual(response_check.status_code, 404)
-      print(f"Turma deletada com sucesso: \033[32m{response.status_code}\033[0m")
+        response = requests.delete(f'{self.BASE_URL}/course-classes/{self.course_class_id}')
+        self.assertEqual(response.status_code, 200)  
+        
+        # Verifica se a turma foi realmente deletada
+        response_check = requests.get(f'{self.BASE_URL}/course-classes/{self.course_class_id}')
+        self.assertEqual(response_check.status_code, 404)
+        print(f"Turma deletada com sucesso: \033[32m{response.status_code}\033[0m")
 
-      
+    def test_015_add_student_to_course_class(self):
+        response = requests.post(f'{self.BASE_URL}/course-classes/{self.course_class_id}/students/{self.student_id}')
+        self.assertEqual(response.status_code, 201)
+
+        # verifica se o aluno foi realmente incluido na turma
+        response_check = requests.get(f'{self.BASE_URL}/course-classes/{self.course_class_id}/students')
+        self.assertEqual(response_check.status_code, 200)
+
+        student = response_check.json()['students'][0]
+        self.assertEqual(student['id'], self.student_id)
+
 if __name__ == '__main__':
     unittest.main()
