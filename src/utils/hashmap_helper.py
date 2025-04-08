@@ -1,4 +1,9 @@
-class HashMap[K, V]:
+from typing import Generic, TypeVar
+
+K = TypeVar('K')
+V = TypeVar('V')
+
+class HashMap(Generic[K, V]):
   def __init__(self):
     self.__size = 0
     self.__elements: dict[K, V] = {}

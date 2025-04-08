@@ -122,7 +122,7 @@ class TestSchoolMethods(unittest.TestCase):
         response_json = response.json()
         self.assertEqual(response_json['id'], self.student_id)
         self.assertEqual(response_json['name'], 'Jane Smith')
-        print(f"Aluno encontrado com sucesso! Nome: \033[32m{response_json["name"]} \033[0m")
+        print(f"Aluno encontrado com sucesso! Nome: \033[32m{response_json['name']}\033[0m")
 
     # Teste GET para buscar todos os cursos
     def test_008_get_all_course_classes(self):
