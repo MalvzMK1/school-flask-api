@@ -26,11 +26,13 @@ class Repository:
   def delete_student_by_id(self, student_id) -> None:
     self.__students.remove(student_id)
 
-  def update_student_by_id(self, student_id: int, name: str, birthdate: datetime) -> None:
+  def update_student_by_id(self, student_id: int, name: str, birthdate: datetime = None) -> None:
     student = self.__students.get(student_id)
 
-    student.name = name
-    student.birthdate = birthdate
+    if student is None: return
+
+    student.name = name or student.name
+    student.birthdate = birthdate or student.birthdate
   
   def add_teacher(self, teacher: Teacher) -> None:
     self.__teachers.add(teacher.id, teacher)
