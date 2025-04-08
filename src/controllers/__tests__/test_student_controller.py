@@ -46,7 +46,7 @@ class TestStudentController(unittest.TestCase):
     def test_delete_by_id(self):
         self.controller.create(self.test_student)
         
-        self.controller.delete_by_id(1)
+        self.controller.delete_by_id(self.test_student.id)
         with self.assertRaises(Exception) as context:
             self.controller.get_by_id(1)
         self.assertEqual(str(context.exception), 'Aluno não encontrado')

@@ -15,7 +15,7 @@ class TestSerialize(unittest.TestCase):
 
         self.assertEqual(serialized["id"], teacher.id)
         self.assertEqual(serialized["name"], teacher.name)
-        self.assertEqual(serialized["created_at"], teacher.created_at)
+        self.assertEqual(serialized["created_at"], teacher.created_at.strftime('%d/%m/%Y'))
 
     def test_serialize_course_class(self):
         class MockTeacher:
@@ -34,10 +34,10 @@ class TestSerialize(unittest.TestCase):
         serialized = serialize_course_class(course_class)
 
         self.assertEqual(serialized["id"], course_class.id)
-        self.assertEqual(serialized["created_at"], course_class.created_at)
+        self.assertEqual(serialized["created_at"], course_class.created_at.strftime('%d/%m/%Y'))
         self.assertEqual(serialized["teacher"]["id"], course_class.teacher.id)
         self.assertEqual(serialized["teacher"]["name"], course_class.teacher.name)
-        self.assertEqual(serialized["teacher"]["created_at"], course_class.teacher.created_at)
+        self.assertEqual(serialized["teacher"]["created_at"], course_class.teacher.created_at.strftime('%d/%m/%Y'))
 
 if __name__ == '__main__':
     unittest.main()
