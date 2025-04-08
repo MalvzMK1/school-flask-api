@@ -2,12 +2,14 @@ from src import (
     repository,
     utils,
     models,
-    controllers
+    controllers,
+    blueprints
 )
 
 __all__ = [
   'repository_instance',
   'utils',
   'models',
-  'controllers'
+  'controllers',
+  'blueprints'
 ]
