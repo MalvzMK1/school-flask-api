@@ -1,24 +1,7 @@
-from datetime import datetime
-from .person import Person
-from .base_entity import Entity
-from src.utils import HashMap
+from .base_entity import db, TimestampMixin, PersonMixin
 
-class Teacher(Entity, Person):
-  def __init__(self, name: str, birthdate: datetime):
-    Entity.__init__(self)
-    Person.__init__(self, name, birthdate)
-    self.__course_classes = HashMap()
-  
-  @property
-  def course_classes(self) -> HashMap:
-    return self.__course_classes
-  
-  @property
-  def course_classes_ammount(self) -> int:
-    return self.__course_classes.size
+class Teacher(db.Model, TimestampMixin, PersonMixin):
+    __tablename__ = 'teachers'
 
-  def add_course_class(self, course_class) -> None:
-    self.__course_classes.add(course_class.id, course_class)
-
-  def remove_course_class_by_id(self, course_class_id: int) -> None:
-    self.__course_classes.remove(course_class_id)
+    id = db.Column(db.Integer, primary_key=True)
+    course_classes = db.relationship("CourseClass", back_populates="teacher")

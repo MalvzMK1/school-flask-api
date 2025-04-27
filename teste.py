@@ -240,7 +240,10 @@ class TestSchoolMethods(unittest.TestCase):
 
     def test_016_update_course_class(self):
         updated_data = {
-            'teacher_id': self.teacher_id  
+            'teacher_id': self.teacher_id,
+            # 'birthdate': '1985-07-10',
+            'students': [self.student_id]
+
         }
         
         response = requests.put(

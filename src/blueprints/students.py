@@ -31,7 +31,7 @@ def get_student_by_id(id):
 def delete_student(id):
     try:
         student_controller.delete_by_id(id)
-        return jsonify({"message": "Student deleted successfully"}), 204
+        return jsonify({"message": "Student deleted successfully"}), 200
     except Exception as e:
         abort(404, description=str(e))
 

@@ -1,91 +1,89 @@
 from flask import jsonify
+from src.models import CourseClass, Teacher, Student, db
 from .base_controller import BaseController
-from src.models import CourseClass, Student
-from src.utils import serialize_course_class, serialize_teacher
 
 class CourseClassController(BaseController[CourseClass]):
-  def __init__(self):
-    super().__init__()
+    def __init__(self):
+        super().__init__()
 
-  def get_all(self):
-    return jsonify({"course_classes": [serialize_course_class(course_class) for course_class in self._repository.course_classes.to_list()]})
+    def get_all(self):
+        return jsonify({
+            "course_classes": [self._serialize(course_class) for course_class in CourseClass.query.all()]
+        })
 
-  def get_by_id(self, id: int):
-    course_class = self.__validate_course_class_existence_and_return(id)
+    def get_by_id(self, id: int):
+        course_class = self.__validate_course_class_existence_and_return(id)
+        return jsonify(self._serialize(course_class))
 
-    if not isinstance(course_class, CourseClass):
-        return "Course class not found", 404
+    def delete_by_id(self, id: int):
+        course_class = self.__validate_course_class_existence_and_return(id)
+        db.session.delete(course_class)
+        db.session.commit()
+        return "Deleted course class successfully", 200
 
-    return jsonify(serialize_course_class(course_class))
-  
-  def delete_by_id(self, id: int):
-    exist = self.__validate_course_class_existence_and_return(id)
+    def update_by_id(self, id: int, teacher_id: int):
+        course_class = self.__validate_course_class_existence_and_return(id)
+        teacher = Teacher.query.get(teacher_id)
+        if teacher is None:
+            raise Exception("Professor não encontrado")
+        course_class.teacher = teacher
+        db.session.commit()
 
-    if exist is None:
-        return "Course class not found", 404
+    def create(self, teacher_id: int):
+        teacher = Teacher.query.get(teacher_id)
+        if teacher is None:
+            return "Professor não encontrado", 404
+        course_class = CourseClass(teacher=teacher)
+        db.session.add(course_class)
+        db.session.commit()
+        return course_class.id
 
-    self._repository.delete_course_class_by_id(id)
+    def get_students_by_course_class_id(self, id: int) -> dict:
+        course_class = self.__validate_course_class_existence_and_return(id)
+        return {
+            "teacher": {
+                "id": course_class.teacher.id,
+                "name": course_class.teacher.name,
+            },
+            "students": [self._serialize_student(s) for s in course_class.students]
+        }
 
-    return "Deleted course class successfully", 200
+    def add_student_to_course_class(self, course_class_id: int, student_id: int):
+        course_class = self.__validate_course_class_existence_and_return(course_class_id)
+        student = Student.query.get(student_id)
+        if student is None:
+            return "Aluno não encontrado", 404
+        course_class.students.append(student)
+        db.session.commit()
+        return "Aluno adicionado com sucesso", 201
 
-  def update_by_id(self, id: int, teacher_id: int):
-    self.__validate_course_class_existence_and_return(id)
+    def remove_student_from_course_class(self, course_class_id: int, student_id: int):
+        course_class = self.__validate_course_class_existence_and_return(course_class_id)
+        student = Student.query.get(student_id)
+        if student is None:
+            raise Exception("Aluno não encontrado")
+        course_class.students.remove(student)
+        db.session.commit()
 
-    teacher = self._repository.teachers.get(teacher_id)
+    def __validate_course_class_existence_and_return(self, id: int) -> CourseClass:
+        course_class = CourseClass.query.get(id)
+        if course_class is None:
+            raise Exception("Turma não encontrada")
+        return course_class
 
-    if teacher is None:
-      raise Exception('Professor não encontrado')
+    def _serialize(self, course_class: CourseClass) -> dict:
+        return {
+            "id": course_class.id,
+            "teacher": {
+                "id": course_class.teacher.id,
+                "name": course_class.teacher.name
+            },
+            "students": [self._serialize_student(s) for s in course_class.students]
+        }
 
-    self._repository.update_course_class_by_id(id, teacher)
-  
-  def create(self, teacher_id):
-    teacher = self._repository.teachers.get(teacher_id)
-
-    if teacher is None:
-        return 
-
-    course_class = CourseClass(teacher)
-
-    self._repository.add_course_class(course_class)
-
-    return course_class.id
-  
-  def get_students_by_course_class_id(self, id: int) -> dict:
-    course_class = self.__validate_course_class_existence_and_return(id)
-
-    return {
-      "teacher": {
-        "id": course_class.teacher.id,
-        "name": course_class.teacher.name,
-      },
-      "students": [serialize_teacher(student) for student in course_class.students.to_list()]
-    }
-  
-  def remove_student_from_course_class(self, course_class_id: int, student_id: int) -> None:
-    course_class = self.__validate_course_class_existence_and_return(course_class_id)
-    student: Student = course_class.students.get(student_id)
-
-    if student is None:
-      raise Exception('Aluno não encontrado')
-    
-    self._repository.remove_student_from_course_class(student, course_class)
-
-  def add_student_to_course_class(self, course_class_id: int, student_id: int) -> None:
-    course_class = self.__validate_course_class_existence_and_return(course_class_id)
-
-    if course_class is None:
-        return "Turma não encontrada", 404
-
-    student: Student = self._repository.students.get(student_id)
-
-    if student is None:
-      return 'Aluno não encontrado', 404
-    
-    self._repository.add_student_to_course_class(student, course_class)
-
-    return "Aluno adicionado com sucesso", 201
-  
-  def __validate_course_class_existence_and_return(self, id: int) -> CourseClass:
-    course_class = self._repository.course_classes.get(id)
-
-    return course_class
+    def _serialize_student(self, student: Student) -> dict:
+        return {
+            "id": student.id,
+            "name": student.name,
+            "age": student.age
+        }
