@@ -15,15 +15,18 @@ def get_all_teachers():
         teachers = teacher_controller.get_all()
         return jsonify({"teachers": [serialize_teacher(t) for t in teachers]})
     except Exception as e:
+        print(f"Erro ao obter professores: {str(e)}")  # Log mais detalhado
         abort(500, str(e))
+
 
 @teacher_bp.route('/<int:id>', methods=['GET'])
 def get_teacher_by_id(id):
     try:
-        teacher = teacher_controller.get_by_id(id)
-        return jsonify(serialize_teacher(teacher))
+        teacher = teacher_controller.get_by_id(id)  
+        return jsonify(teacher)
     except Exception as e:
         abort(404, str(e))
+
 
 @teacher_bp.route('', methods=['POST'])
 def create_teacher():

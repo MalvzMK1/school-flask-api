@@ -7,7 +7,15 @@ class TeacherController(BaseController[Teacher]):
         super().__init__()
 
     def get_all(self):
-        return [self._serialize(t) for t in Teacher.query.all()]
+      try:
+        teachers = Teacher.query.all()
+        if not teachers:
+            raise Exception("Nenhum professor encontrado.")
+        return [self._serialize(t) for t in teachers]
+      except Exception as e:
+        print(f"Erro ao obter professores: {str(e)}")
+        raise Exception("Erro ao tentar obter todos os professores.")  # Detalhar o erro
+
 
     def get_by_id(self, id: int):
         teacher = self.__validate_teacher_existence_and_return(id)

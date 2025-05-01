@@ -12,7 +12,7 @@ def get_all_students():
     try:
         result = student_controller.get_all()
         return jsonify({
-            "students": [{"id": s.id, "name": s.name, "created_at": s.created_at} for s in result]
+            "students": result
         })
     except Exception as e:
         abort(500, description=str(e))
@@ -21,9 +21,7 @@ def get_all_students():
 def get_student_by_id(id):
     try:
         student = student_controller.get_by_id(id)
-        return jsonify({
-            "id": student.id, "name": student.name, "created_at": student.created_at
-        })
+        return jsonify(student)
     except Exception as e:
         abort(404, description=str(e))
 

@@ -1,7 +1,7 @@
-from .base_entity import db
+# from .base_entity import db
 
-course_class_student = db.Table(
-    'course_class_student',
-    db.Column('course_class_id', db.Integer, db.ForeignKey('course_classes.id'), primary_key=True),
-    db.Column('student_id', db.Integer, db.ForeignKey('students.id'), primary_key=True)
-)
+# teacher_course_class = db.Table(
+#     'teacher_course_class',
+#     db.Column('teacher_id', db.Integer, db.ForeignKey('teacher.id'), primary_key=True),
+#     db.Column('course_class_id', db.Integer, db.ForeignKey('course_class.id'), primary_key=True)
+# )

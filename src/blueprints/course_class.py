@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from src.controllers import CourseClassController
+from flask import abort
 
 course_class_controller = CourseClassController()
 

@@ -1,11 +1,11 @@
-from .base_entity import db, TimestampMixin
-from .association import course_class_student
+from src.models import db
+from sqlalchemy.orm import relationship
 
-class CourseClass(db.Model, TimestampMixin):
-    __tablename__ = 'course_classes'
+class CourseClass(db.Model):
+    __tablename__ = 'course_class'
 
     id = db.Column(db.Integer, primary_key=True)
-    teacher_id = db.Column(db.Integer, db.ForeignKey("teachers.id"), nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
 
-    teacher = db.relationship("Teacher", back_populates="course_classes")
-    students = db.relationship("Student", secondary=course_class_student, back_populates="course_classes")
+    teacher = relationship("Teacher", back_populates="course_classes")
+    students = relationship("Student", back_populates="course_class")
