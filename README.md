@@ -68,14 +68,6 @@ Com a API rodando é possível executar os testes com o seguinte comando:
 python -m unittest teste.py
 ```
 
-## Testes Unitários
-
-Para rodar todos os testes unitários, execute este comando:
-
-```bash
-python -m unittest discover -s src -p "test*.py -v"
-```
-
 ## Relacionamento entre Entidades
 
 1. **Professor**
