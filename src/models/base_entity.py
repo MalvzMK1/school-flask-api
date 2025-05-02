@@ -1,16 +1,15 @@
-from abc import ABC
+from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from src.utils import idGenerator
 
-class Entity(ABC):
-  def __init__(self):
-    self._id = idGenerator.generate()
-    self._created_at = datetime.now()
+db = SQLAlchemy()
 
-  @property
-  def id(self) -> int:
-    return self._id
+class TimestampMixin:
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-  @property
-  def created_at(self) -> datetime:
-    return self._created_at
+class PersonMixin:
+    name = db.Column(db.String(100), nullable=False)
+    birthdate = db.Column(db.Date, nullable=False)
+
+    @property
+    def age(self):
+        return (datetime.now().date() - self.birthdate).days // 365

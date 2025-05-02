@@ -1,24 +1,20 @@
 from datetime import datetime
-from .base_entity import Entity
-from .person import Person
-from src.utils import HashMap
+from src.models import db
+from sqlalchemy.orm import relationship
 
-class Student(Entity, Person):
-  def __init__(self, name: str, birthdate: datetime):
-    Entity.__init__(self)
-    Person.__init__(self, name, birthdate)
-    self.__course_classes = HashMap()
+class Student(db.Model):
+    __tablename__ = 'student'
 
-  @property
-  def course_classes(self) -> HashMap:
-    return self.__course_classes
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    birthdate = db.Column(db.Date, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-  @property
-  def course_classes_ammount(self) -> int:
-    return self.__course_classes.size
+    course_class_id = db.Column(db.Integer, db.ForeignKey('course_class.id'), nullable=True)
 
-  def add_course_class(self, course_class) -> None:
-    self.__course_classes.add(course_class.id, course_class)
+    course_class = relationship("CourseClass", back_populates="students")
 
-  def remove_course_class_by_id(self, course_class_id: int) -> None:
-    self.__course_classes.remove(course_class_id)
+    @property
+    def age(self):
+        from datetime import date
+        return date.today().year - self.birthdate.year

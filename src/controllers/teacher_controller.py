@@ -1,63 +1,78 @@
 from datetime import datetime
-from src.models import Teacher, Student
+from src.models import Teacher, db
 from .base_controller import BaseController
 
 class TeacherController(BaseController[Teacher]):
-  def __init__(self):
-    super().__init__()
+    def __init__(self):
+        super().__init__()
 
-  def get_all(self):
-    return self._repository.teachers.to_list()
+    def get_all(self):
+      try:
+        teachers = Teacher.query.all()
+        if not teachers:
+            raise Exception("Nenhum professor encontrado.")
+        return [self._serialize(t) for t in teachers]
+      except Exception as e:
+        print(f"Erro ao obter professores: {str(e)}")
+        raise Exception("Erro ao tentar obter todos os professores.")  # Detalhar o erro
 
-  def get_by_id(self, id: int):
-    teacher = self.__validate_teacher_existence_and_return(id)
 
-    return teacher
-  
-  def delete_by_id(self, id: int):
-    self.__validate_teacher_existence_and_return(id)
+    def get_by_id(self, id: int):
+        teacher = self.__validate_teacher_existence_and_return(id)
+        return self._serialize(teacher)
 
-    self._repository.delete_teacher_by_id(id)
+    def delete_by_id(self, id: int):
+        teacher = self.__validate_teacher_existence_and_return(id)
+        db.session.delete(teacher)
+        db.session.commit()
 
-  def update_by_id(self, id: int, name: str, birthdate: datetime):
-    self.__validate_teacher_existence_and_return(id)
+    def update_by_id(self, id: int, name: str, birthdate: datetime):
+        teacher = self.__validate_teacher_existence_and_return(id)
+        teacher.name = name
+        teacher.birthdate = birthdate
+        db.session.commit()
 
-    self._repository.update_teacher_by_id(id, name, birthdate)
-  
-  def create(self, data):
-    if not isinstance(data, Teacher):
-      raise Exception('Dados incorretos')
+    def create(self, data: Teacher) -> int:
+        if not isinstance(data, Teacher):
+            raise Exception("Dados incorretos")
+        db.session.add(data)
+        db.session.commit()
+        return data.id
 
-    self._repository.add_teacher(data)
+    def get_course_classes_by_teacher_id(self, id: int) -> dict:
+        teacher = self.__validate_teacher_existence_and_return(id)
+        return {
+            "teacher": {
+                "name": teacher.name,
+                "age": teacher.age
+            },
+            "course_classes": [
+                {"id": cc.id} for cc in teacher.course_classes
+            ]
+        }
 
-    return data.id
-  
-  def get_course_classes_by_teacher_id(self, id: int) -> dict:
-    teacher = self.__validate_teacher_existence_and_return(id)
+    def get_teacher_students_by_id(self, id: int):
+        teacher = self.__validate_teacher_existence_and_return(id)
+        students = {student.id: student for cc in teacher.course_classes for student in cc.students}
+        return [self._serialize_student(s) for s in students.values()]
 
-    return {
-      "teacher": {
-        "name": teacher.name,
-        "age": teacher.age
-      },
-      "course_classes": teacher.course_classes.to_list()
-    }
-  
-  def get_teacher_students_by_id(self, id: int) -> list[Student]:
-    teacher = self.__validate_teacher_existence_and_return(id)
-    students_set = set[Student]()
+    def __validate_teacher_existence_and_return(self, id: int) -> Teacher:
+        teacher = Teacher.query.get(id)
+        if teacher is None:
+            raise Exception("Professor não encontrado")
+        return teacher
 
-    for course_class in teacher.course_classes.to_list():
-      for student in course_class.students.to_list():
-        students_set.add(student)
+    def _serialize(self, teacher: Teacher) -> dict:
+        return {
+            "id": teacher.id,
+            "name": teacher.name,
+            "birthdate": teacher.birthdate.strftime("%Y-%m-%d"),
+            "age": teacher.age
+        }
 
-    return list(students_set)
-
-  def __validate_teacher_existence_and_return(self, id) -> Teacher:
-    teacher = self._repository.teachers.get(id)
-
-    if teacher is None:
-      raise Exception('Professor não encontrado')
-    
-    return teacher
-  
+    def _serialize_student(self, student):
+        return {
+            "id": student.id,
+            "name": student.name,
+            "age": student.age
+        }

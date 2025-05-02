@@ -1,32 +1,11 @@
-from .student import Student
-from .teacher import Teacher
-from .base_entity import Entity
-from src.utils import HashMap
+from src.models import db
+from sqlalchemy.orm import relationship
 
-class CourseClass(Entity):
-  def __init__(self, teacher: Teacher):
-    super().__init__()
-    self.__teacher = teacher
-    self.__students = HashMap[int, Student]()
+class CourseClass(db.Model):
+    __tablename__ = 'course_class'
 
-  @property
-  def teacher(self) -> Teacher:
-    return self.__teacher
+    id = db.Column(db.Integer, primary_key=True)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
 
-  @teacher.setter
-  def teacher(self, new_teacher: Teacher) -> None:
-    self.__teacher = new_teacher
-
-  @property
-  def students(self) -> HashMap:
-    return self.__students
-
-  @property
-  def student_ammount(self) -> int:
-    return self.__students.size
-
-  def add_student(self, student: Student) -> None:
-    self.__students.add(student.id, student)
-
-  def remove_student_by_id(self, student_id: int) -> None:
-    self.__students.remove(student_id)
+    teacher = relationship("Teacher", back_populates="course_classes")
+    students = relationship("Student", back_populates="course_class")
