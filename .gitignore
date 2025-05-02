@@ -2,5 +2,6 @@ venv
 .venv
 .env*
 !.env.example
+/instance
 
 __pycache__
