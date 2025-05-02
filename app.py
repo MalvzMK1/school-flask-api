@@ -3,11 +3,11 @@ from config import app
 from src.models import db
 
 with app.app_context():
-    db.create_all()  # Cria as tabelas no banco de dados
+    db.create_all()  
 
 app.register_blueprint(student_bp)
 app.register_blueprint(course_class_bp)
 app.register_blueprint(teacher_bp)
 
 if __name__ == '__main__':
-    app.run(debug=True)  # Colocar o debug=True para mais informações durante o desenvolvimento
+    app.run(debug=False)  # debug=True para mais informações durante o desenvolvimento

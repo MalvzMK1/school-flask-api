@@ -8,14 +8,14 @@ teacher_controller = TeacherController()
 
 teacher_bp = Blueprint('teacher', __name__, url_prefix="/teachers")
 
-## PROFESSORES
+# PROFESSORES
 @teacher_bp.route('', methods=['GET'])
 def get_all_teachers():
     try:
         teachers = teacher_controller.get_all()
-        return jsonify({"teachers": [serialize_teacher(t) for t in teachers]})
+        return jsonify({"teachers": teachers})
     except Exception as e:
-        print(f"Erro ao obter professores: {str(e)}")  # Log mais detalhado
+        print(f"Erro ao obter professores: {str(e)}")  
         abort(500, str(e))
 
 
