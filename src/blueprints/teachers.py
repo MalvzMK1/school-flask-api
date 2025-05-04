@@ -1,92 +1,121 @@
-from flask import Blueprint, jsonify, request, abort
+from flask import request, abort
 from datetime import datetime
 from src.controllers import TeacherController
 from src.models import Teacher
-from src.utils.serialize import serialize_teacher
+from flask_restx import Namespace, Resource
 
 teacher_controller = TeacherController()
 
-teacher_bp = Blueprint('teacher', __name__, url_prefix="/teachers")
+teacher_ns = Namespace('teachers', description='Operations related to teachers')
 
-# PROFESSORES
-@teacher_bp.route('', methods=['GET'])
-def get_all_teachers():
-    try:
-        teachers = teacher_controller.get_all()
-        return jsonify({"teachers": teachers})
-    except Exception as e:
-        print(f"Erro ao obter professores: {str(e)}")  
-        abort(500, str(e))
+@teacher_ns.route('')
+class TeacherList(Resource):
+    @teacher_ns.doc('list_teachers')
+    @teacher_ns.response(200, 'Success')
+    @teacher_ns.response(500, 'Internal Server Error')
+    def get(self):
+        """List all teachers"""
+        try:
+            teachers = teacher_controller.get_all()
+            return {"teachers": teachers}
+        except Exception as e:
+            abort(500, str(e))
 
+    @teacher_ns.doc('create_teacher')
+    @teacher_ns.response(201, 'Teacher created successfully')
+    @teacher_ns.response(400, 'Invalid input')
+    @teacher_ns.response(500, 'Internal Server Error')
+    def post(self):
+        """Create a new teacher"""
+        try:
+            data = request.get_json()
 
-@teacher_bp.route('/<int:id>', methods=['GET'])
-def get_teacher_by_id(id):
-    try:
-        teacher = teacher_controller.get_by_id(id)  
-        return jsonify(teacher)
-    except Exception as e:
-        abort(404, str(e))
+            if not data or 'name' not in data or 'birthdate' not in data:
+                abort(400, 'Missing required fields: name, birthdate')
 
+            birthdate = datetime.strptime(data['birthdate'], '%Y-%m-%d')
+            teacher_id = teacher_controller.create(Teacher(name=data['name'], birthdate=birthdate))
 
-@teacher_bp.route('', methods=['POST'])
-def create_teacher():
-    try:
-        data = request.get_json()
+            return {"id": teacher_id, "message": "Professor criado com sucesso"}, 201
 
-        if not data or 'name' not in data or 'birthdate' not in data:
-            abort(400, 'Missing required fields: name, birthdate')
+        except ValueError:
+            abort(400, 'Invalid date format. Use YYYY-MM-DD')
+        except Exception as e:
+            abort(500, str(e))
 
-        birthdate = datetime.strptime(data['birthdate'], '%Y-%m-%d')
-        teacher_id = teacher_controller.create(Teacher(name=data['name'], birthdate=birthdate))
+@teacher_ns.route('/<int:id>')
+@teacher_ns.param('id', 'The teacher identifier')
+class TeacherResource(Resource):
+    @teacher_ns.doc('get_teacher')
+    @teacher_ns.response(200, 'Success')
+    @teacher_ns.response(404, 'Teacher not found')
+    def get(self, id):
+        """Get a teacher by ID"""
+        try:
+            teacher = teacher_controller.get_by_id(id)
+            return teacher
+        except Exception as e:
+            abort(404, str(e))
 
-        return jsonify({"id": teacher_id, "message": "Professor criado com sucesso"}), 201
+    @teacher_ns.doc('update_teacher')
+    @teacher_ns.response(200, 'Teacher updated successfully')
+    @teacher_ns.response(400, 'Invalid input')
+    @teacher_ns.response(404, 'Teacher not found')
+    def put(self, id):
+        """Update a teacher"""
+        try:
+            data = request.get_json()
 
-    except ValueError:
-        abort(400, 'Invalid date format. Use YYYY-MM-DD')
-    except Exception as e:
-        abort(500, str(e))
+            if not data or 'name' not in data or 'birthdate' not in data:
+                abort(400, 'Missing required fields: name, birthdate')
 
-@teacher_bp.route('/<int:id>', methods=['PUT'])
-def update_teacher(id):
-    try:
-        data = request.get_json()
+            birthdate = datetime.strptime(data['birthdate'], '%Y-%m-%d')
+            teacher_controller.update_by_id(id, data['name'], birthdate)
 
-        if not data or 'name' not in data or 'birthdate' not in data:
-            abort(400, 'Missing required fields: name, birthdate')
+            return {"message": "Teacher updated successfully"}
 
-        birthdate = datetime.strptime(data['birthdate'], '%Y-%m-%d')
-        teacher_controller.update_by_id(id, data['name'], birthdate)
+        except ValueError:
+            abort(400, 'Invalid date format. Use YYYY-MM-DD')
+        except Exception as e:
+            abort(404, str(e))
 
-        return jsonify({"message": "Teacher updated successfully"})
+    @teacher_ns.doc('delete_teacher')
+    @teacher_ns.response(200, 'Teacher deleted successfully')
+    @teacher_ns.response(404, 'Teacher not found')
+    def delete(self, id):
+        """Delete a teacher"""
+        try:
+            teacher_controller.delete_by_id(id)
+            return {"message": "Teacher deleted successfully"}
+        except Exception as e:
+            abort(404, str(e))
 
-    except ValueError:
-        abort(400, 'Invalid date format. Use YYYY-MM-DD')
-    except Exception as e:
-        abort(404, str(e))
+@teacher_ns.route('/<int:id>/course-classes')
+@teacher_ns.param('id', 'The teacher identifier')
+class TeacherCourseClasses(Resource):
+    @teacher_ns.doc('get_teacher_course_classes')
+    @teacher_ns.response(200, 'Success')
+    @teacher_ns.response(404, 'Teacher not found')
+    def get(self, id):
+        """Get course classes for a teacher"""
+        try:
+            result = teacher_controller.get_course_classes_by_teacher_id(id)
+            return result
+        except Exception as e:
+            abort(404, str(e))
 
-@teacher_bp.route('/<int:id>', methods=['DELETE'])
-def delete_teacher(id):
-    try:
-        teacher_controller.delete_by_id(id)
-        return jsonify({"message": "Teacher deleted successfully"})
-    except Exception as e:
-        abort(404, str(e))
-
-@teacher_bp.route('/<int:id>/course-classes', methods=['GET'])
-def get_course_classes_by_teacher_id(id):
-    try:
-        result = teacher_controller.get_course_classes_by_teacher_id(id)
-        return jsonify(result)
-    except Exception as e:
-        abort(404, str(e))
-
-@teacher_bp.route('/<int:id>/students', methods=['GET'])
-def get_teacher_students_by_id(id):
-    try:
-        students = teacher_controller.get_teacher_students_by_id(id)
-        return jsonify({"students": [
-            {"id": s.id, "name": s.name, "age": s.age} for s in students
-        ]})
-    except Exception as e:
-        abort(404, str(e))
-
+@teacher_ns.route('/<int:id>/students')
+@teacher_ns.param('id', 'The teacher identifier')
+class TeacherStudents(Resource):
+    @teacher_ns.doc('get_teacher_students')
+    @teacher_ns.response(200, 'Success')
+    @teacher_ns.response(404, 'Teacher not found')
+    def get(self, id):
+        """Get students for a teacher"""
+        try:
+            students = teacher_controller.get_teacher_students_by_id(id)
+            return {"students": [
+                {"id": s.id, "name": s.name, "age": s.age} for s in students
+            ]}
+        except Exception as e:
+            abort(404, str(e))

@@ -1,13 +1,9 @@
 from typing import Generic, TypeVar
 from abc import ABC, abstractmethod
-from src.repository import repository_intance 
 
 Model = TypeVar('Model')
 
 class BaseController(ABC, Generic[Model]):
-  def __init__(self):
-    self._repository = repository_intance
-
   @abstractmethod
   def get_all(self) -> list[Model]:
     pass

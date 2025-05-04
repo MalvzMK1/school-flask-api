@@ -1,5 +1,4 @@
 from src import (
-    repository,
     utils,
     models,
     controllers,
@@ -7,7 +6,6 @@ from src import (
 )
 
 __all__ = [
-  'repository_instance',
   'utils',
   'models',
   'controllers',
