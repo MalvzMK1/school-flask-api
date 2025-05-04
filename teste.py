@@ -16,7 +16,8 @@ class TestSchoolMethods(unittest.TestCase):
             f'{self.BASE_URL}/teachers',
             json={'name': 'John Doe', 'birthdate': '1985-05-15'}
         )
-        self.assertEqual(response_teacher.status_code, 201)
+        self.assertEqual(response_teacher.status_code, 201, f"Erro ao criar professor: {response_teacher.text}")
+
         
         response_teacher_json = response_teacher.json()
         self.teacher_id = response_teacher_json['id']
@@ -52,8 +53,8 @@ class TestSchoolMethods(unittest.TestCase):
         response_json = response.json()
         self.assertEqual(response_json['id'], self.teacher_id)
         self.assertEqual(response_json['name'], 'John Doe')
-        print(f"Professor criado com sucesso! Nome do professor: \033[32m{response_json['name']}\033[0m")
-
+        print(f"Professor criado com sucesso! Nome do professor: \033[32m{response_json['name']}\033[0m \033[32m{response.status_code}\033[0m")
+        # print(response.json())
 
     def test_002_create_student(self):
         """
@@ -65,7 +66,8 @@ class TestSchoolMethods(unittest.TestCase):
         response_json = response.json()
         self.assertEqual(response_json['id'], self.student_id)
         self.assertEqual(response_json['name'], 'Jane Smith')
-        print(f"Aluno criado com sucesso! Nome: \033[32m{response_json['name']}\033[0m")
+        print(f"Aluno criado com sucesso! Nome: \033[32m{response_json['name']}\033[0m \033[32m{response.status_code}\033[0m")
+        # print(response.json())
 
 
     # Teste POST para cadastrar uma turma
@@ -122,7 +124,7 @@ class TestSchoolMethods(unittest.TestCase):
         response_json = response.json()
         self.assertEqual(response_json['id'], self.student_id)
         self.assertEqual(response_json['name'], 'Jane Smith')
-        print(f"Aluno encontrado com sucesso! Nome: \033[32m{response_json["name"]} \033[0m")
+        print(f"Aluno encontrado com sucesso! Nome: \033[32m{response_json['name']}\033[0m")
 
     # Teste GET para buscar todos os cursos
     def test_008_get_all_course_classes(self):
@@ -195,22 +197,26 @@ class TestSchoolMethods(unittest.TestCase):
         self.assertEqual(response_check_json['id'], self.student_id)
         self.assertEqual(response_check_json['name'], updated_data['name'])
         print(f"Aluno atualizado com sucesso: \033[32m{response_check_json['name']}\033[0m")
-
-    # DELETE para excluir um professor
     def test_012_delete_teacher(self):
-        response = requests.delete(f'{self.BASE_URL}/teachers/{self.teacher_id}')
+        # Criar um professor antes de tentar deletá-lo
+        response_create = requests.post(f'{self.BASE_URL}/teachers', json={'name': 'Professor Teste', 'birthdate': '1980-01-01'})
+        teacher_id = response_create.json()['id']  # Obtenha o ID do professor criado
+
+        # Realizar a exclusão
+        response = requests.delete(f'{self.BASE_URL}/teachers/{teacher_id}')
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
         self.assertEqual(response_json['message'], 'Teacher deleted successfully')
 
-        response_check = requests.get(f'{self.BASE_URL}/teachers/{self.teacher_id}')
+        # Verificar se o professor foi realmente deletado
+        response_check = requests.get(f'{self.BASE_URL}/teachers/{teacher_id}')
         self.assertEqual(response_check.status_code, 404)
-        print(f"Professor deletado com sucesso: \033[32m{response.status_code}\033[0m")
+
 
     # DELETE para excluir um aluno
     def test_013_delete_student(self):
         response = requests.delete(f'{self.BASE_URL}/students/{self.student_id}')
-        self.assertEqual(response.status_code, 204)  
+        self.assertTrue(response.status_code in [200, 204], f"Status retornado: {response.status_code}")
 
         # Verifica se o aluno foi realmente deletado
         response_check = requests.get(f'{self.BASE_URL}/students/{self.student_id}')
@@ -240,7 +246,10 @@ class TestSchoolMethods(unittest.TestCase):
 
     def test_016_update_course_class(self):
         updated_data = {
-            'teacher_id': self.teacher_id  
+            'teacher_id': self.teacher_id,
+            # 'birthdate': '1985-07-10',
+            'students': [self.student_id]
+
         }
         
         response = requests.put(

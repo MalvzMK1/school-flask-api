@@ -10,13 +10,13 @@ Este projeto foi feito para a matéria de Desenvolvimento de APIs da faculdade. 
 
 Para rodar o projeto, é necessário seguir o passo a passo:
 
-### Inicializando o Ambiente Virtual (venv)
+### Inicialização padrão
 
 1. **Crie a pasta venv**
 
 ```bash
 python -m venv venv
-# ou 
+# ou
 python3 -m venv venv
 ```
 
@@ -40,7 +40,27 @@ pip install -r requirements.txt
 flask run
 ```
 
-## Testes
+### Inicialização com Docker
+
+1. Tenha o Docker instalado em sua máquina
+
+```sh
+$ docker -v
+  Docker version 27.5.0, build a187fa5
+
+$ docker compose version
+  Docker Compose version v2.32.4
+```
+
+2. Rode com o Docker Compose
+
+Exemplo:
+
+```sh
+docker compose up --build
+```
+
+## Testes E2E
 
 Com a API rodando é possível executar os testes com o seguinte comando:
 
@@ -51,11 +71,13 @@ python -m unittest teste.py
 ## Relacionamento entre Entidades
 
 1. **Professor**
-    - Tem N turmas
+
+   - Tem N turmas
 
 2. **Turma**
-    - Tem N alunos
-    - Tem 1 professor
+
+   - Tem N alunos
+   - Tem 1 professor
 
 3. **Aluno**
-    - Tem N turmas
+   - Tem N turmas
